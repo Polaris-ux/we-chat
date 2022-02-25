@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<script src="../js/mui.js"></script>
+		<script src="../js/app.js"></script>
+		<style type="text/css">
+			#scan-page {
+				top: 44px;
+				bottom: 0px;
+				text-align: center;
+				position: absolute;
+				background-color: #000000;
+				width: 100%;
+			}
+		</style>
+
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color">扫一扫</h1>
+		</header>
+		<div id="scan-page">
+
+		</div>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function() {
+				var curWv = plus.webview.currentWebview();
+				curWv.addEventListener("show", function() {
+					setTimeout("startRecognize()", 500);
+				})
+			});
+			var scan;
+			// 定义扫码框及扫码条的颜色样式
+			var styles = {
+				backgroud: "",
+				frameColor: "#fffefc",
+				scanbarColor: "#aaffff"
+			};
+			
+			var options={
+				conserve:false,
+				filename:"",
+				vibrate:false,
+				sound:"none"
+			}
+
+			function startRecognize() {
+
+				scan = new plus.barcode.Barcode('scan-page', null, styles, true);
+				scan.onmarked = onmarked;
+				scan.start(options);
+			}
+
+			function onmarked(type, result) {
+				if (type == 0) {
+					// 判断扫到的二维码是不是属于我们的
+					if (result.substr(0,6)=="qrcode") {
+						var res = result.split("_");
+						var userInfo = app.getUserInfo();
+						plus.nativeUI.showWaiting("请稍后...");
+						mui.ajax(app.serverUrl + "user/toAddFriendsPage", {
+							data: {
+								userId: userInfo.id,
+								username: res[1]
+							},
+							type: "post",
+							dataType: "json",
+							timeout: 10000,
+							success: function(response) {
+								if (response.status == 200) {
+									plus.nativeUI.closeWaiting();
+									mui.openWindow({
+										url: 'searchResult.html',
+										id: 'searchResult',
+										extras: {
+											friend: response.data
+										}
+									});
+								} else {
+									plus.nativeUI.closeWaiting();
+									app.showToAst(response.message, "error");
+								}
+							},
+							error: function(xhr, type, errorThrown) {
+								if (type == "timeout") {
+									app.showToAst("连接超时", "error");
+								} else if (type == "error") {
+									app.showToAst("连接错误", "error");
+								}
+							}
+						});
+					}else{
+						// 每次扫完，重新更新一次
+						app.showToAst("不支持该二维码","error");
+						scan.start(options);
+					}
+				}else{
+					// 每次扫完，重新更新一次
+					scan.start(options);
+				}
+			}
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<link href="../css/login/main.css" rel="stylesheet" />
+		<link href="../css/login/util.css" rel="stylesheet" />
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+		<style>
+			.p-t-85 {
+				padding-top: 10px;
+			}
+		
+			.p-b-70 {
+				padding-bottom: 35px;
+			}
+		
+			.m-t-85 {
+				margin-top: 15px;
+			}
+		
+			.container-login100 {
+				padding: 25px;
+			}
+		
+			/*toast信息提示*/
+		
+			.mui-toast-container {
+				bottom: 50% !important;
+			}
+		
+			.mui-toast-message {
+				opacity: 0.6;
+				color: #fff;
+				width: 180px;
+				padding: 70px 5px 10px 5px;
+			}
+			.container-loggin100-form-btn{
+				margin-top: 40px;
+			}
+			label.xrequired:before {
+			        content: '* ';
+			        color: red;
+			}
+
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color">春风与你</h1>
+		</header>
+		<div class="mui-content">
+			<div id="" class="regist-info">
+				<div class="mui-input-row wrap-input100">
+					<label for="username" style="width: 90px;padding-right: 0px;"><span style="color:red;">* </span>用户名:</label>
+					<input id="username" style="width: 73%;" type="text" class="mui-input-clear" placeholder="请输入用户名">
+				</div>
+				<div class="mui-input-row wrap-input100">
+					<label for="password" style="width: 80px;padding-right: 0px;"><span style="color:red;">* </span>密&nbsp;&nbsp;&nbsp;码:</label>
+					<input id="password" style="width: 73%;" type="text" class="mui-input-clear" placeholder="请输入密码">
+				</div>
+				<div class="mui-input-row wrap-input100">
+					<label for="nickname" class="" style="padding-left:26px;width: 80px;padding-right: 0px;">昵&nbsp;&nbsp;&nbsp;称:</label>
+					<input id="nickname" style="width: 73%;" type="text" class="mui-input-clear" placeholder="请输入昵称">
+				</div>
+				<span style="padding-left: 5px;"><span style="color: #DD4A68;font-size: 23px;">* </span>:必须填的字段</span>
+				<div class="container-loggin100-form-btn">
+					<button id="register-btn" type="submit" class="login100-form-btn"
+						style="background-color: #4CD964;">注册</button>
+				</div>
+				
+			</div>
+		</div>
+		
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			   var username=document.getElementById("username");
+			   var password=document.getElementById("password");
+			   var nickname=document.getElementById("nickname");
+			   
+			   document.getElementById("register-btn").addEventListener("tap",function(){
+				   if(username.value.length<=0){
+					   app.showToAst("用户名不能为空","error");
+					   username.focus();
+					   return;
+				   }else if(username.value.length>12){
+					   app.showToAst("用户名不能超过12位","error");
+					   return;
+				   }
+				   
+				   if(password.value.length<=0){
+				   		app.showToAst("密码不能为空","error");
+						password.focus();
+				   		return;
+				   }else if(password.value.length<6){
+				   		app.showToAst("密码不能少于6位","error");
+				   		return;
+				   }
+				   // 获取每台设备的唯一cid
+				   var cid = plus.push.getClientInfo().clientid;
+				   mui.ajax(app.serverUrl+"user/register",{
+					   data:{
+						   username:username.value,
+						   password:password.value,
+						   nickname:nickname.value,
+						   cid:cid
+					   },
+					   type:'post',
+					   dataType:'json',
+					   timeout:10000,
+					   success:function(response){
+						   if(response.status==200){
+							   app.showToAst("注册成功","success");
+							   mui.openWindow({
+								   url:"login.html",
+								   id:"login"
+							   });
+						   }else{
+							   app.showToAst(response.message,"error");
+						   }
+					   }
+				   })
+			   });
+			   
+			});
+		</script>
+	</body>
+
+</html>

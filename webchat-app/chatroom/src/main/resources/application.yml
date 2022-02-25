@@ -1,0 +1,58 @@
+#端口号
+server:
+  port: 9001
+  tomcat:
+    max-http-form-post-size: -1
+#服务名
+spring:
+  application:
+    name: chat-room
+  #环境设置：dev、test、prod
+  profiles:
+    active: dev
+  #mysql数据库
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/im_bird?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: mjy600811
+    type: com.alibaba.druid.pool.DruidDataSource
+  #返回json的全局时间格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+  #配置视图解析器
+  mvc:
+    view:
+      prefix: /WEB-INF/pages/
+      suffix: .jsp
+
+#mybatis
+mybatis:
+  mapper-locations: classpath*:com/mjy/chatroom/mapper/xml/*.xml
+
+
+#分布式文件系统FDFS配置
+fdfs:
+  so-timeout: 1501
+  connect-timeout: 601
+  thumb-image:
+    width: 150
+    height: 150
+  tracker-list:
+    - 116.62.122.89:22122
+
+
+#redis
+redis:
+  host: 116.62.122.89
+  port: 6379
+  timeout: 10
+  poolMaxTotal: 1000
+  poolMaxIdle: 500
+  poolMaxWait: 500
+  password: mjy600811
+
+
+

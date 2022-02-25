@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<link href="../iconfonts/iconfont.css" rel=stylesheet />
+		<script src="../js/mui.min.js"></script>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color">语 春 风</h1>
+		</header>
+		<div class="mui-content">
+			<!-- 图文列表：mList -->
+			<ul class="mui-table-view" style="margin-top:0px;">
+				<li class="mui-table-view-cell mui-media">
+					<a id="friends_space" href="javascript:;">
+						<img class="mui-media-object mui-pull-left" src="../images/friends.png"
+							style="width: 30px;height: 30px;line-height: 30px;">
+						<div class="mui-media-body">
+							<span class="mui-pull-right"
+								style="line-height: 30px;font-size: 18px;color: dimgray;">朋友圈</span>
+						</div>
+					</a>
+				</li>
+			</ul>
+			<ul class="mui-table-view" style="margin-top:10px;">
+				<li class="mui-table-view-cell mui-media">
+					<a id="add_friend" href="javascript:;">
+						<img class="mui-media-object mui-pull-left" src="../images/addfriends.png"
+							style="width: 30px;height: 30px;line-height: 30px;">
+						<div class="mui-media-body">
+							<span class="mui-pull-right"
+								style="line-height: 30px;font-size: 18px;color: dimgray;">添加好友</span>
+						</div>
+					</a>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<a href="javascript:;" id="func_sacnning">
+						<img class="mui-media-object mui-pull-left" src="../images/scanscan.png"
+							style="width: 30px;height: 30px;line-height: 30px;">
+						<div class="mui-media-body">
+							<span class="mui-pull-right"
+								style="line-height: 30px;font-size: 18px;color: dimgray;">扫一扫</span>
+						</div>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function() {
+				// 根据id获取Element
+				var friends_space = document.getElementById("friends_space");
+				var add_friend=document.getElementById("add_friend");
+				var func_sacnning=document.getElementById("func_sacnning");
+				
+				// 添加触摸事件
+				add_friend.addEventListener("tap",function(){
+					mui.openWindow({
+						url:"searchFriends.html",
+						id:"searchFriends"
+					});
+				});
+				
+				// 添加触摸事件
+				func_sacnning.addEventListener("tap",function(){
+					mui.openWindow({
+						url:"scan-me.html",
+						id:"scan-me"
+					});
+				});
+			});
+		</script>
+	</body>
+
+</html>

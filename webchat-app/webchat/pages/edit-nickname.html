@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<script src="../js/app.js"></script>
+		<script src="../js/mui.js"></script>
+		<style type="text/css">
+			body{
+				background-color: white;
+			}
+			.mui-content{
+				background-color: white;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<a id="save-nickname" class="mui-icon mui-icon-right-nav mui-pull-right title-color" style="font-size: 16px;line-height: 24px;">完成</a>
+			<h1 class="mui-title title-color">语 春 风</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-input-row">
+				<input id="nickname" type="text" class="mui-input mui-input-clear" placeholder="请输入修改的昵称"
+				 style="height: 50px;"/>
+			</div>
+		</div>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+				// 获取用户全局信息
+			    var userInfo=app.getUserInfo();
+				// 获取昵称文本框
+				var nickname=document.getElementById("nickname");
+				
+				nickname.value=userInfo.nickname;
+				// 保存所修改的昵称信息
+				document.getElementById("save-nickname").addEventListener("tap",function(){
+					if(!app.isNotNUll(nickname.value)){
+						app.showToAst("所填昵称不能为空","error");
+						return false;
+					}else if(nickname.value.length>12){
+						app.showToAst("昵称长度不能超过12位","error");
+						return false;
+					}
+					userInfo.nickname=nickname.value;
+					mui.ajax(app.serverUrl+"user/editNickname",{
+						data:{
+							id:userInfo.id,
+							nickname:nickname.value
+						},
+						type:"post",
+						dataType:"json",
+						timeout:100000,
+						success:function(response){
+							console.log(JSON.stringify(response.data));
+							if(response.status==200){
+								// 重新设置用户信息
+								userInfo.nickname=nickname.value;
+								app.setUserGlobalInfo(userInfo);
+								
+								// 获取webView对象,触发webView的自定义事件更新最新用户信息
+								var windMe=plus.webview.getWebviewById("wind-me");
+								mui.fire(windMe,"refresh");
+								// 返回上一个界面
+								mui.back();
+							}else{
+								app.showToAst(response.message,"error");
+							}
+						},
+						error:function(xhr,type,errorThrown){
+							if(type=="timeout"){
+								mui.toast("连接超时");
+							}else if(type=="error"){
+								mui.toast("连接出错");
+							}
+						}
+					})
+				})
+				
+				
+			});
+			
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<link href="../iconfonts/iconfont.css" rel=stylesheet />
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+	</head>
+	<style type="text/css">
+
+	</style>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color">语 春 风</h1>
+		</header>
+		<div class="mui-content">
+			<ul class="mui-table-view" id="shotList">
+
+			</ul>
+		</div>
+		<script type="text/javascript">
+			mui.init({
+				// 预加载
+				preloadPages:[
+				    {
+				      url:'wind-contact.html',
+				      id:'wind-contact'
+				    },
+					{
+					  url:'wind-discover.html',
+					  id:'wind-discover'
+					},
+					{
+					  url:'wind-me.html',
+					  id:'wind-me'
+					}
+				  ],
+				  // 下拉刷新
+				  pullRefresh:{
+				      container:"#shotList",//下拉刷新容器标识，querySelector能定位的css选择器均可，比如：id、.class等
+				      down : {
+				        style:'circle',//必选，下拉刷新样式，目前支持原生5+ ‘circle’ 样式
+				        color:'#2BD009', //可选，默认“#2BD009” 下拉刷新控件颜色
+				        height:'50px',//可选,默认50px.下拉刷新控件的高度,
+				        range:'100px', //可选 默认100px,控件可下拉拖拽的范围
+				        offset:'0px', //可选 默认0px,下拉刷新控件的起始位置
+				        auto: true,//可选,默认false.首次加载自动上拉刷新一次
+				        callback:getFriends  //必选，刷新函数，根据具体业务来编写，比如通过ajax从服务器获取新数据；
+				      }
+				    }
+			});
+
+			mui.plusReady(function() {
+				var friendId;
+				var friendNickname;
+				var friendFaceImage;
+				var userInfo = app.getUserInfo();
+				// 添加监听事件
+				var curWeb=plus.webview.currentWebview();
+				curWeb.addEventListener("show",function(){
+					loadChatSnap();
+				})
+				
+				mui("#shotList").on("tap", ".chat-with-friend", function() {
+					friendId = this.getAttribute("friendId");
+					friendNickname = this.getAttribute("friendNickname");
+					friendFaceImage = this.getAttribute("friendFaceImage");
+					mui.openWindow({
+						url: "bird-chatting.html",
+						id: "bird-chatting" + friendId,
+						extras: {
+							friendId: friendId,
+							friendNickname: friendNickname,
+							friendFaceImage: friendFaceImage
+						}
+					});
+
+					app.readSnapshot(userInfo.id, friendId);
+					// 刷新消息快照
+					loadChatSnap();
+
+				});
+				
+				// 为左滑操作按钮绑定事件
+				mui("#shotList").on("tap",".btn-delete",function(){
+					var friendId=this.getAttribute("friendId");
+					// 删除快照
+					app.deleteSnapshot(userInfo.id,friendId);
+					// 删除ul中的li标签
+					var li=this.parentNode.parentNode;
+					// 获取ul结构对象
+					var shotList=document.getElementById("shotList");
+					shotList.removeChild(li);
+				});
+				
+				mui("#shotList").on("tap",".btn-toTop",function(){
+					var friendId=this.getAttribute("friendId");
+					// 将消息置顶
+					app.snapshotToTop(userInfo.id,friendId);
+					loadChatSnap();
+				});
+
+			});
+
+			// 渲染消息快照
+			function loadChatSnap() {
+				var userInfo = app.getUserInfo();
+				
+				console.log(JSON.stringify(app.getContactList()));
+				// 获取快照列表
+				var snapshotList = app.getSnapshotList(userInfo.id);
+				console.log(JSON.stringify(snapshotList));
+				var shotList = document.getElementById("shotList");
+				shotList.innerHTML = "";
+				var contentHtml = "";
+				for (var i = 0; i < snapshotList.length; i++) {
+					var snapshot = snapshotList[i];
+					var friend = app.getFriendById(snapshot.friendId);
+					var display = "";
+					// console.log(JSON.stringify(snapshot));
+					if (snapshot.isRead) {
+						display = "none";
+					}
+					var nums = snapshot.num;
+					if (snapshot.num > 99) {
+						nums = 99;
+					}
+					console.log(JSON.stringify(friend));
+					contentHtml = '<li friendId="' + friend.friendId + '" friendNickname="' + friend.friendNickname +
+						'" friendFaceImage="' + friend.friendFaceImage +
+						'" class="chat-with-friend mui-table-view-cell mui-media">' +
+						'<div class="mui-slider-right mui-disabled">'+
+							'<a friendId="'+friend.friendId+'" class="btn-delete mui-btn mui-btn-red">删除</a>'+
+							'<a friendId="'+friend.friendId+'" class="btn-toTop mui-btn mui-btn-grey">置顶</a>'+
+						'</div>'+
+						'<div class="mui-slider-handle mui-media-body">' +
+						'<img class="mui-media-object mui-pull-left" src="' + (app.imageServerUrl + friend.friendFaceImage) +
+						'">' +
+						'<span>'+friend.friendNickname+'</span>' +
+						'<span class="mui-badge mui-badge-danger mui-pull-right" style="display:' + display + ' ;">' + nums +
+						'</span>' +
+						'<p class="mui-ellipsis">' + snapshot.msg + '</p>' +
+						'</div>' +
+						'</li>';
+
+					shotList.insertAdjacentHTML("beforeend", contentHtml);
+				}
+			}
+			
+			// wind-conchat.html调用
+			function getUnReadMsgs(accepterId) {
+				mui.ajax(app.serverUrl + "user/getUnReadMsg", {
+					data: "accepterId=" + accepterId,
+					type: "get",
+					dataType: 'json',
+					timeout: 10000,
+					async: false,
+					success: function(response) {
+						if (response.status == 200) {
+							var unReadMsgs = response.data;
+							console.log(JSON.stringify(unReadMsgs));
+							var unsignMsgId = "";
+
+							// 保存快照到本地
+							// 保存历史消息到本地
+							// 拼接未签收的消息
+							for (var i = 0; i < unReadMsgs.length; i++) {
+								var unReadMsg = unReadMsgs[i];
+								// 保存历史消息
+								app.saveChatHistoryMsg(unReadMsg.acceptUserId, unReadMsg.sendUserId,
+									unReadMsg.msg, 2);
+								// 保存快照
+								app.saveChatSnapshot(unReadMsg.acceptUserId, unReadMsg.sendUserId,
+									unReadMsg.msg, false);
+
+								unsignMsgId = unsignMsgId + "," + unReadMsg.id;
+							}
+							
+							var windContact=plus.webview.getWebviewById("wind-contact");
+							// 批量签收消息
+							var dataContext = new app.DataContext(app.SIGNED, null, unsignMsgId);
+
+							windContact.evalJS("CHAT.chat('"+JSON.stringify(dataContext)+"')");
+							
+							// 渲染消息快照
+							loadChatSnap();
+
+						} else {
+							app.showToAst(response.message, "error");
+						}
+					}
+				})
+			}
+			
+			function getFriends() {
+				var userInfo=app.getUserInfo();
+				mui.ajax(app.serverUrl + "user/getMyFriends", {
+					data: "userId=" + userInfo.id,
+					type: 'get',
+					dataType: 'json',
+					timeout: 10000,
+					success: function(response) {
+						if (response.status == 200) {
+							// 保存好友列表
+							app.setContactList(response.data);
+							
+							// 刷新消息快照
+							var windChat = plus.webview.getWebviewById("wind-chat");
+							windChat.evalJS("loadChatSnap()");
+						} else {
+							app.showToAst(response.message, "error");
+						}
+						//注意，加载完新数据后，必须执行如下代码，注意：若为ajax请求，则需将如下代码放置在处理完ajax响应数据之后
+						//没有更多内容了，endPulldown 传入true， 不再执行下拉刷新
+						mui('#shotList').pullRefresh().endPulldown();
+					}
+				});
+			}
+		</script>
+	</body>
+
+</html>

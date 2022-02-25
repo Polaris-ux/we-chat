@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<script src="../js/mui.js"></script>
+		<script src="../js/app.js"></script>
+		
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color">语春风</h1>
+		</header>
+		<ul class="mui-table-view" style="margin-top: 44px;" id="req-list">
+		
+		</ul>
+		
+		
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			    var userInfo=app.getUserInfo();
+				
+				var curWeb=plus.webview.currentWebview();
+				curWeb.addEventListener("show",function(){
+					getRequestList(userInfo.id);
+				});
+				
+			});
+			
+			// 拼接li标签
+			function combineLi(sender) {
+				var content = "<li class='btnOper mui-table-view-cell mui-media'>" +
+					"<a href='javascript:;'>" +
+					"<img class='mui-media-object mui-pull-left' src='" + (app.imageServerUrl + sender.sendFaceImage) +
+					"'>" +
+					"<span class='mui-pull-right'>" +
+					"<button type='button' class='accept-btn mui-btn mui-btn-danger mui-ellipsis' senderId='" + sender
+					.sendId +
+					"' style='line-height: 25px;margin-right: 5px;width: 65px;'>同意</button>" +
+					"<button type='button' class='ignore-btn mui-btn mui-btn-grey mui-ellipsis' senderId='" + sender.sendId +
+					"' style='line-height: 25px;width: 65px;'>忽略</button>" +
+					"</span>" + "<div class='mui-media-body'>" +
+					"<div id='content-tips'>" + "<span id='req_nickname'>" + sender.sendNickname + "</span><br/>" +
+					"<span>请求添加你为好友</span>" + "</div>" + "</div>" +
+					"</a>" +
+					"</li>";
+				return content;
+			}
+			
+			// 获取好友请求列表
+			function getRequestList(userId) {
+			
+				// 获取无序列表
+				var newFriends = document.getElementById("req-list");
+				newFriends.innerHTML = "";
+				mui.ajax(app.serverUrl + "user/getRequestUser", {
+					data: "userId=" + userId,
+					type: 'get',
+					timeout: 10000,
+					dataType: "json",
+					success: function(response) {
+						if (response.status == 200) {
+							var senders = response.data;
+							if (senders != null) {
+								for (var i = 0; i < senders.length; i++) {
+									var content = combineLi(senders[i]);
+									newFriends.innerHTML += content;
+								}
+							}
+							// 动态处理忽略和同意按钮的事件处理问题
+							mui(".btnOper").on("tap", ".accept-btn", function() {
+								var friendId = this.getAttribute("senderId");
+								handleRequest(userId, friendId, 1);
+							});
+			
+							mui(".btnOper").on("tap", ".ignore-btn", function() {
+								var friendId = this.getAttribute("senderId");
+								handleRequest(userId, friendId, 2);
+			
+							});
+			
+						} else {
+							app.showToAst("更新新朋友失败", "error");
+						}
+			
+					}
+				});
+			}
+			
+			function handleRequest(userId, friendId, type) {
+				var curWv = plus.webview.currentWebview();
+				// 处理同意的请求
+				if (type == 1) {
+					mui.ajax(app.serverUrl + "user/addFriend", {
+						data: {
+							myUserId: userId,
+							myFriendUserId: friendId
+						},
+						type: "post",
+						dataType: "json",
+						timeout: 10000,
+						success: function(response) {
+							console.log(response.data);
+							if (response.status == 200) {
+								app.setContactList(response.data);
+								// 每次操作成功后将wind-contact刷新一次
+								var windContact=plus.webview.getWebviewById("wind-contact");
+								mui.fire(windContact,"refresh");
+								curWv.reload(true);
+							} else {
+								app.showToAst("添加好友失败", "error");
+							}
+						}
+					});
+				} else if (type == 2) {
+					mui.ajax(app.serverUrl + "user/ignoreFriend", {
+						data: {
+							myUserId: userId,
+							myFriendUserId: friendId
+						},
+						type: "post",
+						dataType: "json",
+						timeout: 10000,
+						success: function(response) {
+							if (response.status == 200) {
+								var windContact=plus.webview.getWebviewById("wind-contact");
+								mui.fire(windContact,"refresh");
+								curWv.reload(true);
+							} else {
+								app.showToAst("忽略失败", "error");
+							}
+						}
+					});
+				}
+			
+			}
+		</script>
+	</body>
+
+</html>

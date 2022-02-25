@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<script src="../js/mui.js"></script>
+		<script src="../js/app.js"></script>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color">详细信息</h1>
+		</header>
+		
+		<div class="mui-content">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell mui-media">
+					<a href="javascript:;">
+						<img id="info_image" class="mui-media-object mui-pull-left" src="">
+						<div class="mui-media-body">
+							<span id="info_nickname"></span>
+							<p id="info_username" class="mui-ellipsis"></p>
+						</div>
+					</a>
+				</li>
+			</ul>
+			
+			<div style="margin-top:10px;text-align: center;">
+				<button id="add_friend" class="mui-btn" type="button" style="width: 95%;background-color:#FF4136;color: white;height: 40px;font-size: 16px;">添加好友</button>
+			</div>
+		</div>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			   var srWebView=plus.webview.currentWebview();
+			   var userData=srWebView.friend;
+			   var curUser=app.getUserInfo();
+			   
+			   
+			   var info_img=document.getElementById("info_image");
+			   var info_nickname=document.getElementById("info_nickname");
+			   var info_username=document.getElementById("info_username");
+			   var add_friend=document.getElementById("add_friend");
+			   
+			   if(app.isNotNUll(userData.faceImage)){
+				   info_img.src=app.imageServerUrl+userData.faceImageBig;
+			   }
+			   if(app.isNotNUll(userData.nickname)){
+				   info_nickname.innerHTML=userData.nickname;
+			   }
+			   if(app.isNotNUll(userData.username)){
+				   info_username.innerHTML=userData.username;
+			   }
+			   
+			   add_friend.addEventListener("tap",function(){
+				  plus.nativeUI.showWaiting("发送好友请求中....");
+				  mui.ajax(app.serverUrl+"user/addFriendReq",{
+					  data:{
+						  sendUserId:curUser.id,
+						  acceptUserId:userData.id
+					  },
+					  type:'post',
+					  dataType:'json',
+					  timeout:10000,
+					  success:function(response){
+						  plus.nativeUI.closeWaiting();
+						  if(response.status==200){
+							  app.showToAst("请求发送成功","success");
+							  mui.openWindow({
+								  url:"index.html",
+								  id:"index"
+							  })
+						  }
+					  }
+				  })
+				  
+			   });
+			   
+			});
+		</script>
+	</body>
+
+</html>

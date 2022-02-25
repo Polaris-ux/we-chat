@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mjy.chatroom.mapper.MyFriendsMapper">
+  <cache/>
+  <resultMap id="BaseResultMap" type="com.mjy.chatroom.entity.MyFriends">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="my_user_id" jdbcType="VARCHAR" property="myUserId" />
+    <result column="my_friend_user_id" jdbcType="VARCHAR" property="myFriendUserId" />
+  </resultMap>
+  <resultMap id="FriendsMap" type="com.mjy.chatroom.entity.vo.MyFriendsVo">
+    <result column="id" property="friendId"></result>
+    <result column="username" property="friendUsername"></result>
+    <result column="nickname" property="friendNickname"></result>
+    <result column="face_image_big" property="friendFaceImage"></result>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, my_user_id, my_friend_user_id
+  </sql>
+
+  <select id="getFriendsId" resultType="java.lang.String">
+    select my_friend_user_id from my_friends
+    where my_user_id=#{userId};
+  </select>
+  <select id="getFriendRecord" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"></include>
+    from my_friends
+    where my_user_id=#{userId} and my_friend_user_id=#{friendsId};
+</select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from my_friends
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectFriendsById" parameterType="String" resultMap="FriendsMap">
+    select u.id,u.username,u.nickname,u.face_image_big
+    from my_friends mf
+    left join users u
+    on mf.my_friend_user_id=u.id
+    where mf.my_user_id=#{userId};
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from my_friends
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.mjy.chatroom.entity.MyFriends">
+    insert into my_friends (id, my_user_id, my_friend_user_id
+      )
+    values (#{id,jdbcType=VARCHAR}, #{myUserId,jdbcType=VARCHAR}, #{myFriendUserId,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.mjy.chatroom.entity.MyFriends">
+    insert into my_friends
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="myUserId != null">
+        my_user_id,
+      </if>
+      <if test="myFriendUserId != null">
+        my_friend_user_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="myUserId != null">
+        #{myUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="myFriendUserId != null">
+        #{myFriendUserId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.mjy.chatroom.entity.MyFriends">
+    update my_friends
+    <set>
+      <if test="myUserId != null">
+        my_user_id = #{myUserId,jdbcType=VARCHAR},
+      </if>
+      <if test="myFriendUserId != null">
+        my_friend_user_id = #{myFriendUserId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.mjy.chatroom.entity.MyFriends">
+    update my_friends
+    set my_user_id = #{myUserId,jdbcType=VARCHAR},
+      my_friend_user_id = #{myFriendUserId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

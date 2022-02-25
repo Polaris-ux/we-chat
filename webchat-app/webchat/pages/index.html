@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<link href="../iconfonts/iconfont.css" rel="stylesheet" />
+		<script src="../js/mui.min.js"></script>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color">语 春 风</h1>
+		</header>
+		<div class="mui-content">
+
+		</div>
+		<nav class="mui-bar mui-bar-tab">
+			<a class="mui-tab-item mui-active" tabindex="0">
+				<span class="mui-icon iconfont icon-gezi"></span>
+				<span class="mui-tab-label">信鸽</span>
+			</a>
+			<a class="mui-tab-item" tabindex="1">
+				<span class="mui-icon iconfont icon-huamingce"></span>
+				<span class="mui-tab-label">英雄册</span>
+			</a>
+			<a class="mui-tab-item" tabindex="2">
+				<span class="mui-icon iconfont icon-yun"></span>
+				<span class="mui-tab-label">江湖</span>
+			</a>
+			<a class="mui-tab-item" tabindex="3">
+				<span class="mui-icon iconfont icon-wode"></span>
+				<span class="mui-tab-label">我</span>
+			</a>
+		</nav>
+		<script type="text/javascript">
+			mui.init();
+			// 定义选项页面数组，用于页面切换
+			var subPages = [{
+					pageId: "wind-chat",
+					pageUrl: "wind-chat.html"
+				},
+				{
+					pageId: "wind-contact",
+					pageUrl: "wind-contact.html"
+				},
+				{
+					pageId: "wind-discover",
+					pageUrl: "wind-discover.html"
+				},
+				{
+					pageId: "wind-me",
+					pageUrl: "wind-me.html"
+				}
+			];
+			//设置页面打开的样式
+			var style = {
+				top: "0px",
+				bottom: "50px"
+			};
+			mui.plusReady(function() {
+				// 获取当前窗口的WebViewObject对象
+				var curWebView = plus.webview.currentWebview();
+				
+				// 为页面数组的元素创建WebViewObject对象，并加入当前窗口的WebViewObject中
+				for (var i = 0; i < subPages.length; i++) {
+					var wv = plus.webview.create(subPages[i].pageUrl, subPages[i].pageId,style);
+					// 将页面隐藏
+					wv.hide();
+					// 将页面加入当前对象中
+					curWebView.append(wv);
+				}
+
+				// 默认先显示第一个选项页面
+				plus.webview.show(subPages[0].pageId);
+
+				// 为每一个a标签绑定触碰事件
+				mui(".mui-bar-tab").on('tap', 'a', function() {
+					// 获取页面的tabIndex
+					var index = this.getAttribute("tabIndex");
+					// 显示tabIndex对应的页面
+					plus.webview.show(subPages[index].pageId, "fade-in", 200);
+
+					// 将其它页面隐藏
+					for (var i = 0; i < subPages.length; i++) {
+						if (i != index) {
+							plus.webview.hide(subPages[i].pageId);
+						}
+					}
+				});
+				
+				// 预加载
+				// setTimeout("initPages()",500);
+			});
+			
+			function initPages(){
+				// 修改：11.24
+				var windChat=plus.webview.getWebviewById("wind-chat");
+				mui.fire(windChat,"refresh");
+				
+				var windMe=plus.webview.getWebviewById("wind-me");
+				mui.fire(windMe,"refresh");
+				
+				var windContact=plus.webview.getWebviewById("wind-contact");
+				mui.fire(windContact,"refresh");
+			}
+		</script>
+	</body>
+
+</html>

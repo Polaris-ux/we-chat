@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/index/header.css" rel="stylesheet" />
+		<script src="../js/mui.js"></script>
+		<script src="../js/app.js"></script>
+		<style type="text/css">
+			/* body{
+				background-color: white;
+			} */
+		
+		</style>
+	</head>
+
+	<body>
+		
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<a id="do_search" class="mui-icon mui-pull-right title-color" style="line-height: 24px;font-size: 16px;">搜索</a>
+			<h1 class="mui-title title-color">搜索用户</h1>
+		</header>
+		
+		<div class="mui-content">
+			<div class="mui-input-row">
+				<input id="search_text" type="text" class="mui-input-speech mui-input-clear" style="margin-bottom: 0px;" placeholder="搜索好友">
+			</div>
+			
+		</div>
+		
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+				
+			   var username=document.getElementById("search_text");
+			   var do_search=document.getElementById("do_search");
+			   do_search.addEventListener("tap",function(){
+				   if(!app.isNotNUll(username.value)){
+					   app.showToAst("请输入想要搜索的好友名称","error");
+					   username.focus();
+				   }
+				  // 获取用户全局信息
+				  var userInfo=app.getUserInfo();
+				  plus.nativeUI.showWaiting("请稍后...");
+				  
+				  mui.ajax(app.serverUrl+"user/toAddFriendsPage",{
+					  data:{
+						  userId:userInfo.id,
+						  username:username.value
+					  },
+					  type:"post",
+					  dataType:"json",
+					  timeout:10000,
+					  success:function(response){
+						  console.log(JSON.stringify(response.data));
+						  if(response.status==200){
+							  plus.nativeUI.closeWaiting();
+							  mui.openWindow({
+								  url:'searchResult.html',
+								  id:'searchResult',
+								  extras:{
+									  friend:response.data
+								  }
+							  });
+						  }else{
+							  plus.nativeUI.closeWaiting();
+							  app.showToAst(response.message,"error");
+						  }
+					  },
+					  error:function(xhr,type,errorThrown){
+						  if(type=="timeout"){
+							  app.showToAst("连接超时","error");
+						  }else if(type=="error"){
+							  app.showToAst("连接错误","error");
+						  }
+					  }
+				  });
+				   
+			   });
+			   
+			});
+		</script>
+	</body>
+
+</html>

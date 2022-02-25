@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/login/main.css" rel="stylesheet" />
+		<link href="../css/login/util.css" rel="stylesheet" />
+		<script src="../js/mui.min.js"></script>
+		<script src="../js/app.js"></script>
+		<style type="text/css">
+
+			.p-t-85 {
+				padding-top: 10px;
+			}
+
+			.p-b-70 {
+				padding-bottom: 35px;
+			}
+
+			.m-t-85 {
+				margin-top: 15px;
+			}
+
+			.container-login100 {
+				padding: 25px;
+			}
+
+			/*toast信息提示*/
+
+			.mui-toast-container {
+				bottom: 50% !important;
+			}
+
+			.mui-toast-message {
+				opacity: 0.6;
+				color: #fff;
+				width: 180px;
+				padding: 70px 5px 10px 5px;
+			}
+
+			.regist {
+				float: right;
+				font-size: 16px;
+				margin-top: 10px;
+				color: #4CD964;
+
+			}
+
+
+			/* .regist:hover{
+				color: #DD524D;
+				font-size: 18px;
+			} */
+		</style>
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<div class="container-login100">
+				<div class="wrap-login100 p-t-85 p-b-20">
+					<form id="loginForm">
+						<span class="login100-form-title p-b-70">
+							<h5 style="color: #EE9900;">语 春 风<a class="regist">注 册</a></h5>
+						</span>
+
+						<span class="login100-form-avatar">
+							<img id="default_login_img" src="../images/avtor.jpg" alt="图片未加载" />
+						</span>
+						<div class="wrap-input100 validate-input m-t-85 m-b-35">
+							<input class="input100" id="username" type="text" name="username" placeholder="用户名" />
+							<span class="focus-input100"></span>
+						</div>
+						<div class="wrap-input100 validate-input m-b-50">
+							<input class="input100" type="password" id="password" name="password" placeholder="密码" />
+							<span class="focus-input100"></span>
+						</div>
+						<div class="container-loggin100-form-btn">
+							<button type="submit" class="login100-form-btn"
+								style="background-color: #FF4136;">登录</button>
+						</div>
+					</form>
+
+				</div>
+
+			</div>
+		</div>
+
+
+		<script type="text/javascript">
+			mui.init()
+			mui.plusReady(function() {
+				var userInfo = app.getUserInfo();
+				if (userInfo !== null && userInfo !== undefined) {
+					mui.openWindow({
+						url: "index.html",
+						id: "index"
+					});
+				}
+				var loginForm = document.getElementById("loginForm")
+				var username = document.getElementById("username");
+				var password = document.getElementById("password");
+
+				loginForm.addEventListener("submit", function(e) {
+					// 判断字段是否为空，为空就聚焦到该字段填写处
+					if (!app.isNotNUll(username.value)) {
+						username.focus();
+					} else if (!app.isNotNUll(password.value)) {
+						password.focus();
+					} else {
+						// 判断用户输入用户名和密码的合法性
+						if (username.value.length > 12) {
+							app.showToAst("用户名长度不能超过12位", "error");
+							return false;
+						}
+						if (password.value.length < 6) {
+							app.showToAst("密码不能少于6位", "error");
+							return false;
+						}
+					
+						mui.ajax(app.serverUrl + "user/login", {
+							data: {
+								username: username.value,
+								password: password.value,
+							},
+							type: "post",
+							dataType: "json",
+							timeout: 10000,
+							success: function(response) {
+								// 将用户的信息保存到本地缓存中
+								var userInfo = response.data;
+								app.setUserGlobalInfo(userInfo);
+								mui.openWindow({
+									url: 'index.html',
+									id: 'index'
+								})
+							},
+							error: function(xhr, type, errorThrown) {
+								if (type == "timeout") {
+									mui.toast("连接超时");
+								} else if (type == "error") {
+									mui.toast("连接错误");
+								}
+							}
+						});
+					}
+					// 阻止自动提交
+					e.preventDefault();
+				});
+
+				// 注册按钮绑定事件
+				document.getElementsByClassName("regist")[0].addEventListener("tap", function() {
+					mui.openWindow({
+						url: "regist.html",
+						id: "regist"
+					});
+				});
+				// 为页面定义刷新事件
+			});
+		</script>
+	</body>
+
+</html>

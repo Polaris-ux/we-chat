@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport"
+			content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<link href="../css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="../css/index/header.css" />
+		<link rel="stylesheet" type="text/css" href="../css/chat.css" />
+		<script src="../js/mui.js"></script>
+		<script src="../js/app.js"></script>
+		<script type="application/javascript" src="../js/app.js"></script>
+		<style>
+			html,
+			body {
+				height: 100%;
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+			}
+
+			.footer-center {
+				width: 90%;
+				margin-left: 10px;
+			}
+
+			.footer-right {
+				margin-right: 10px;
+			}
+		</style>
+	</head>
+
+	<body contextmenu="return false;">
+
+		<header class="mui-bar mui-bar-nav title" style="position: fixed;">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color"><b id="chatting-nickname">“ 麻 雀 ” 聊 天</b></h1>
+		</header>
+
+		<div id="msg-outter" class="mui-content">
+			<div id='msg'>
+
+
+			</div>
+		</div>
+
+		<footer>
+			<div class="footer-center">
+				<textarea id='msg-text' confirm-hold="true" type="text" class='input-text'></textarea>
+			</div>
+			<label for="" class="footer-right">
+				<button type="button" class="mui-btn mui-btn-gray" id="send">发送</button>
+			</label>
+		</footer>
+
+		<script type="text/javascript">
+			mui.init();
+			var friendId;
+			var friendNickname;
+			var friendFaceImage;
+
+			mui.plusReady(function() {
+				// 获取自己的信息
+				var userInfo = app.getUserInfo();
+				// 获取聊天页面的webView
+				var chatWeb = plus.webview.currentWebview();
+
+				// 设置聊天页面的软键盘样式
+				chatWeb.setStyle({
+					softinputMode: "adjustResize"
+				});
+				// 聊天好友的信息
+				friendId = chatWeb.friendId;
+				friendNickname = chatWeb.friendNickname;
+				friendFaceImage = chatWeb.friendFaceImage;
+				// 将首部信息换为好友昵称
+				var header = document.getElementById("chatting-nickname");
+				header.innerHTML = friendNickname;
+				// 判断网络情况
+				if (!checkNetStatus()) {
+					header.innerHTML += "(网络异常)";
+				}
+				
+				// 加载历史聊天记录
+				initHistoryMsg(userInfo.id,friendId,app.imageServerUrl+userInfo.faceImageBig,app.imageServerUrl+friendFaceImage);
+
+				// 设置聊天记录进入页面时自动滚动到最后一条
+				resizeScreen();
+
+				// 对文本输入框进行监听
+				var msg_text = document.getElementById("msg-text");
+				// 发送按钮对象
+				var sendBtn = document.getElementById("send");
+
+				msg_text.addEventListener("input", function() {
+					var content = msg_text.value;
+					if (content.length > 0) {
+						sendBtn.setAttribute("class", "mui-btn-green");
+					} else {
+						sendBtn.setAttribute("class", "mui-btn-gray");
+					}
+				});
+
+				// 当键盘弹出时，我们的聊天窗口会从原来的全屏调整为半屏
+				window.addEventListener("resize", function() {
+					// 调整屏幕高度
+					resizeScreen();
+				});
+				
+				// 防止发送之后，软键盘自动关闭
+				document.getElementsByClassName("footer-right")[0].addEventListener("touchmove",function(event){
+					msgTextFocus();
+					event.preventDefault();
+				});
+				
+				document.getElementsByClassName("footer-right")[0].addEventListener("touchstart",function(event){
+					msgTextFocus();
+					event.preventDefault();
+					
+				});
+
+				// 给发送按钮绑定监听事件
+				sendBtn.addEventListener("tap", function() {
+					// 判断网络
+					if (!checkNetStatus()) {
+						app.showToAst("网络异常...", "error");
+						return;
+					}
+					var msg_text_content = msg_text.value;
+					if (msg_text_content.length <= 0) {
+						return;
+					}
+					
+					// 调用websocket发送消息到netty后端
+					// 构建需要发送的消息格式
+					var chatContext=new app.ChatContext(userInfo.id,friendId,msg_text_content,null);
+					var dataContext=new app.DataContext(app.CHAT,chatContext,null);
+					var content=JSON.stringify(dataContext);
+					var contactWeb=plus.webview.getWebviewById("wind-contact");
+					contactWeb.evalJS("CHAT.chat('"+content+"')");
+					
+					// 发送消息
+					sendMsg(app.imageServerUrl+userInfo.faceImageBig,msg_text_content);
+					// 保存聊天记录
+					app.saveChatHistoryMsg(userInfo.id,friendId,msg_text_content,1);
+					// 保存聊天快照
+					app.saveChatSnapshot(userInfo.id,friendId,msg_text_content,true);
+					
+			
+					// 设置聊天记录进入页面时自动滚动到最后一条
+					resizeScreen();
+
+					// 发送消息后清空内容
+					msg_text.value = "";
+					sendBtn.setAttribute("class", "mui-btn-gray");
+				});
+
+
+
+			})
+
+			function resizeScreen() {
+				// 获取聊天页面对象
+				var msgList = document.getElementById("msg");
+				// 设置聊天记录进入页面时自动滚动到最后一条
+				msgList.scrollTop = msgList.scrollHeight + msgList.offsetHeight;
+			}
+
+			function checkNetStatus() {
+				// networkinfo获取网络状态
+				var netStatus = plus.networkinfo.getCurrentType();
+				if (netStatus == 0 || netStatus == 1) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+
+			function sendMsg(faceImage, msg) {
+				var msgHtml = '<div class="me_lists">' +
+					'<div class="header_img">' +
+					'<img src="' + faceImage + '" width="40px" height="40px" />' +
+					'</div>' +
+					'<div class="msg-wrapper left">' +
+					'<p class="msg-right-green">' + msg + '</p>' +
+					'</div>' +
+					'</div>';
+				var msgList = document.getElementById("msg");
+				// 比直接使用innerHtml更快
+				msgList.insertAdjacentHTML("beforeend", msgHtml);
+			}
+
+			function receiveMsg(faceImage, msg) {
+				var msgHtml = '<div class="friend_lists">' +
+					'<div class="header_img">' +
+					'<img src="' + faceImage + '" width="40px" height="40px" />' +
+					'</div>' +
+					'<div class="msg-wrapper right">' +
+					'<p class="msg-left-white">' + msg + '</p>' +
+					'</div>' +
+					'</div>';
+				var msgList = document.getElementById("msg");
+				// 比直接使用innerHtml更快
+				msgList.insertAdjacentHTML("beforeend", msgHtml);
+				// 收到消息的提示音
+				receiveMsgSound();
+			}
+
+			// 接收到消息的提示铃声
+			function receiveMsgSound() {
+				var player = plus.audio.createPlayer("../mp3/receive.mp3");
+				player.play();
+
+			}
+			
+			// 聚焦到输入文本框
+			function msgTextFocus(){
+				var msg_text=document.getElementById("msg-text");
+				msg_text.focus();
+				setTimeout(function(){
+					msg_text.focus();
+				},150);
+			}
+			
+			// 初始化聊天记录
+			function initHistoryMsg(myId,friendId,faceImage,friendFaceImage){
+				// 历史聊天记录列表
+				var historyMsgList=app.getHistoryChatMsgList(myId,friendId);
+				// 获取聊天消息列表
+				var msgList=document.getElementById("msg");
+				if(historyMsgList==null){
+					return;
+				}
+				for (var i = 0; i < historyMsgList.length; i++) {
+					var msgHtml;
+					if(historyMsgList[i].flag==1){
+						msgHtml = '<div class="me_lists">' +
+							'<div class="header_img">' +
+							'<img src="' + faceImage + '" width="40px" height="40px" />' +
+							'</div>' +
+							'<div class="msg-wrapper left">' +
+							'<p class="msg-right-green">' + historyMsgList[i].msg + '</p>' +
+							'</div>' +
+							'</div>';
+					}else if(historyMsgList[i].flag==2){
+						msgHtml = '<div class="friend_lists">' +
+							'<div class="header_img">' +
+							'<img src="' + friendFaceImage + '" width="40px" height="40px" />' +
+							'</div>' +
+							'<div class="msg-wrapper right">' +
+							'<p class="msg-left-white">' + historyMsgList[i].msg + '</p>' +
+							'</div>' +
+							'</div>';
+					}
+					
+					msgList.insertAdjacentHTML('beforeend',msgHtml);
+				}
+			}
+		</script>
+	</body>
+
+</html>

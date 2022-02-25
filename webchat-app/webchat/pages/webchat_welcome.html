@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<style type="text/css">
+			
+			body{
+				background-image: url("../images/welcome.jpg");
+				/* 将背景扩展得足够大，使背景图完全覆盖背景区域 */
+				background-size:cover;
+			}
+			.btns{
+				position:absolute;
+				/* 容器高40px */
+				height: 40px;
+				/* 距离底部60px */
+				bottom: 60px;
+				/* 自适应 */
+				width: 100%;
+			}
+			.btn{
+				width: 50%;
+				/* 文本内容居中 */
+				text-align: center;
+			}
+			.mui-btn-green{
+				width: 90px;
+			}
+			
+			
+		</style>
+	</head>
+
+	<body>
+		<script src="../js/mui.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			// tap：指移动端手指单击触发的事件
+			window.onload=function(){
+				document.getElementById("login").addEventListener("tap",function(){
+					mui.openWindow({
+						url:'login1.html',
+						id:'login1'
+					});
+				});
+			}
+			
+		</script>
+		<div class="btns">
+			<div class="btn mui-pull-left">
+				<button id="login" class="mui-btn mui-btn-green">登录</button>
+			</div>
+			
+			<div class="btn mui-pull-right">
+				<button id="register" class="mui-btn mui-btn-green">注册</button>
+			</div>
+			
+		</div>
+	</body>
+
+</html>
